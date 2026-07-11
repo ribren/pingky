@@ -32,7 +32,7 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
     <key>CFBundleDisplayName</key>
     <string>${APP_NAME}</string>
     <key>CFBundleIdentifier</key>
-    <string>com.local.pingky</string>
+    <string>com.ribren.pingky</string>
     <key>CFBundleVersion</key>
     <string>1.0</string>
     <key>CFBundleShortVersionString</key>
@@ -55,8 +55,22 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "==> Ad-hoc code signing..."
-codesign --force --sign - "${APP_DIR}"
+# Prefer a Developer ID Application identity (required for notarized distribution).
+# Override by exporting SIGN_IDENTITY="Developer ID Application: Name (TEAMID)".
+SIGN_IDENTITY="${SIGN_IDENTITY:-}"
+if [ -z "${SIGN_IDENTITY}" ]; then
+    SIGN_IDENTITY=$(security find-identity -v -p codesigning | awk -F'"' '/Developer ID Application/{print $2; exit}')
+fi
+
+if [ -n "${SIGN_IDENTITY}" ]; then
+    echo "==> Signing with Developer ID (hardened runtime + timestamp):"
+    echo "    ${SIGN_IDENTITY}"
+    codesign --force --options runtime --timestamp --sign "${SIGN_IDENTITY}" "${APP_DIR}"
+else
+    echo "==> No 'Developer ID Application' identity found — falling back to ad-hoc."
+    echo "    (Ad-hoc builds run locally but CANNOT be notarized. See notarize.sh.)"
+    codesign --force --sign - "${APP_DIR}"
+fi
 
 echo "==> Done: $(pwd)/${APP_DIR}"
 echo "    Run it with:  open ${APP_DIR}"
