@@ -3,3 +3,6 @@
 Pingky.iconset/
 .DS_Store
 .swiftpm/
+
+# release artifacts
+*.zip
