@@ -12,21 +12,11 @@
 
 ---
 
-There is a particular flavor of helplessness reserved for the engineer at 35,000 feet.
+Airplane Wi-Fi drops out and you can't tell if it's slow, dying, or gone — the spinner just spins.
 
-The deploy is mid-flight — yours and the plane's. The terminal hangs on a handshake that may never come. You refresh. You toggle Wi-Fi off, then on, with the solemn ritualism of someone restarting a router they cannot see. Somewhere over Nebraska, a satellite is *thinking about it*. And you, you have no idea whether the connection is merely slow, quietly dying, or already gone — only that the spinner keeps spinning and your faith keeps shrinking.
+**Pingky** pings `8.8.8.8` once a second and shows the result as a grid of little boxes: green when it's fast, red when it's slow, black when a packet is dropped. One glance tells you whether to keep waiting or give up.
 
-**Pingky** is for that moment.
-
-It sits in the corner of your screen and pings `8.8.8.8` once a second, every second, and paints what it finds: a rolling field of little boxes, green when the world is responsive, sliding through amber toward red as the latency climbs, and going black the instant a packet vanishes into the void. No dashboards. No graphs you have to interpret. Just a small, honest mascot quietly telling you the truth about your link to the rest of humanity — so you know, at a glance, whether to keep waiting or to close the lid and order the tomato juice.
-
-It will not bring the Wi-Fi back. Nothing brings the Wi-Fi back. But at least you'll know.
-
-<div align="center">
-
-*“When the connection finally returns, you'll see it turn green before the spinner does.”*
-
-</div>
+It won't bring the Wi-Fi back. But at least you'll know.
 
 ---
 
