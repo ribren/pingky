@@ -6,6 +6,8 @@
 
 *A small, cheerful witness to the quality of your connection.*
 
+[![Sponsor](https://img.shields.io/badge/Buy%20me%20a%20coffee-%E2%98%95-ff69b4?style=for-the-badge)](https://github.com/sponsors/ribren)
+
 </div>
 
 ---
@@ -65,6 +67,10 @@ Three small pieces, nothing clever:
 - **`AppDelegate`** hangs it all in a borderless, blurred, always-on-top `NSPanel`.
 
 The mascot, for the record, was rendered entirely in CoreGraphics ([`generate_icon.swift`](generate_icon.swift)). He emits the same green-to-red waves you'll come to either love or dread.
+
+## Buy me a coffee
+
+Pingky is free, and it always will be. But if it ever earns its keep — if it spares you one needless refresh at 35,000 feet, or simply makes the waiting a little more bearable — you'll find a **Buy me a coffee ☕** item tucked into the menu-bar menu, and a [sponsor button](https://github.com/sponsors/ribren) up top. Entirely optional, deeply appreciated, and roughly the price of the airport espresso I'm probably drinking while you read this.
 
 ## License
 

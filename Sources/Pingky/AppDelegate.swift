@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let frameKey = "PingkyPanelFrame"
     private let defaultSize = NSSize(width: 380, height: 150)
+    private let sponsorURL = URL(string: "https://github.com/sponsors/ribren")!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildPanel()
@@ -93,9 +94,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Show / Hide", action: #selector(togglePanel), keyEquivalent: "s"))
         menu.addItem(.separator())
+        menu.addItem(NSMenuItem(title: "Buy me a coffee ☕", action: #selector(openSponsor), keyEquivalent: ""))
+        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Pingky", action: #selector(quit), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem.menu = menu
+    }
+
+    @objc private func openSponsor() {
+        NSWorkspace.shared.open(sponsorURL)
     }
 
     @objc private func togglePanel() {
