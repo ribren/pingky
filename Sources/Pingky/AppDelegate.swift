@@ -5,6 +5,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let monitor = PingMonitor(host: "8.8.8.8")
+    private let updates = UpdateChecker()
     private var panel: NSPanel!
     private var statusItem: NSStatusItem!
 
@@ -16,6 +17,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         buildPanel()
         buildStatusItem()
         monitor.start()
+        updates.onChange = { [weak self] in self?.rebuildMenu() }
+        updates.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -90,15 +93,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let button = statusItem.button {
             button.image = NSImage(systemSymbolName: "wave.3.right", accessibilityDescription: "Pingky")
         }
+        rebuildMenu()
+    }
 
+    /// Rebuilt whenever update state changes, so the menu can grow an
+    /// "Update to vX.Y" item (items with a nil action render disabled).
+    private func rebuildMenu() {
         let menu = NSMenu()
+        if let update = updates.available {
+            if updates.installing {
+                menu.addItem(NSMenuItem(title: "Updating to v\(update.version)…", action: nil, keyEquivalent: ""))
+            } else {
+                menu.addItem(NSMenuItem(title: "Update to v\(update.version)", action: #selector(installUpdate), keyEquivalent: ""))
+            }
+            if let error = updates.lastError {
+                menu.addItem(NSMenuItem(title: "Update failed (\(error)) — open releases", action: #selector(openReleases), keyEquivalent: ""))
+            }
+            menu.addItem(.separator())
+        }
         menu.addItem(NSMenuItem(title: "Show / Hide", action: #selector(togglePanel), keyEquivalent: "s"))
+        menu.addItem(NSMenuItem(title: "Check for Updates", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Buy me a coffee ☕", action: #selector(openSponsor), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Pingky", action: #selector(quit), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem.menu = menu
+    }
+
+    @objc private func installUpdate() {
+        updates.install()
+    }
+
+    @objc private func checkForUpdates() {
+        updates.check()
+    }
+
+    @objc private func openReleases() {
+        if let update = updates.available {
+            NSWorkspace.shared.open(update.pageURL)
+        }
     }
 
     @objc private func openSponsor() {
