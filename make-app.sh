@@ -34,9 +34,9 @@ cat > "${APP_DIR}/Contents/Info.plist" <<PLIST
     <key>CFBundleIdentifier</key>
     <string>com.ribren.pingky</string>
     <key>CFBundleVersion</key>
-    <string>1.1</string>
+    <string>1.2</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.1</string>
+    <string>1.2</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleExecutable</key>

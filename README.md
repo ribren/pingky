@@ -14,7 +14,9 @@
 
 Airplane Wi-Fi drops out and you can't tell if it's slow, dying, or gone — the spinner just spins.
 
-**Pingky** pings `8.8.8.8` once a second and shows the result as a grid of little boxes: green when it's fast, red when it's slow, black when a packet is dropped. One glance tells you whether to keep waiting or give up.
+**Pingky** pings a host once a second and shows the result as a grid of little boxes: green when it's fast, red when it's slow, black when a packet is dropped. One glance tells you whether to keep waiting or give up.
+
+It watches `8.8.8.8` out of the box, but the **Ping Target** menu takes anything — Cloudflare, your router's IP, a hostname, even a pasted URL (`https://netflix.com/browse` pings `netflix.com`).
 
 It won't bring the Wi-Fi back. But at least you'll know.
 
@@ -52,7 +54,7 @@ Drop `Pingky.app` into `/Applications`, add it to **System Settings → General 
 
 Three small pieces, nothing clever:
 
-- **`PingMonitor`** fires a one-second timer, shells out to `/sbin/ping -c 1 -W 1000 8.8.8.8` off the main thread, parses the `time=…`, and appends the result to a 3,000-entry ring buffer.
+- **`PingMonitor`** fires a one-second timer, shells out to `/sbin/ping -c 1 -W 1000 <target>` off the main thread, parses the `time=…`, and appends the result to a 3,000-entry ring buffer. The target is whatever you pick in the menu (IPs, hostnames, and URLs all normalize to a pingable host).
 - **`PingGridView`** draws that whole buffer in a single SwiftUI `Canvas` pass — three thousand boxes, no perceptible cost.
 - **`AppDelegate`** hangs it all in a borderless, blurred, always-on-top `NSPanel`.
 

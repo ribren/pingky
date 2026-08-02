@@ -4,8 +4,16 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    private let monitor = PingMonitor(host: "8.8.8.8")
+    private static let targetKey = "PingTarget"
+    private let monitor = PingMonitor(
+        host: UserDefaults.standard.string(forKey: AppDelegate.targetKey) ?? "8.8.8.8"
+    )
     private let updates = UpdateChecker()
+    private let presetTargets: [(label: String, host: String)] = [
+        ("Google DNS (8.8.8.8)", "8.8.8.8"),
+        ("Cloudflare (1.1.1.1)", "1.1.1.1"),
+        ("Quad9 (9.9.9.9)", "9.9.9.9"),
+    ]
     private var panel: NSPanel!
     private var statusItem: NSStatusItem!
 
@@ -112,6 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(.separator())
         }
         menu.addItem(NSMenuItem(title: "Show / Hide", action: #selector(togglePanel), keyEquivalent: "s"))
+        menu.addItem(targetMenuItem())
         menu.addItem(NSMenuItem(title: "Check for Updates", action: #selector(checkForUpdates), keyEquivalent: ""))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Buy me a coffee ☕", action: #selector(openSponsor), keyEquivalent: ""))
@@ -119,6 +128,67 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Quit Pingky", action: #selector(quit), keyEquivalent: "q"))
         menu.items.forEach { $0.target = self }
         statusItem.menu = menu
+    }
+
+    /// "Ping Target" submenu: presets, the current custom target if any,
+    /// and a Custom… dialog accepting an IP, hostname, or URL.
+    private func targetMenuItem() -> NSMenuItem {
+        let submenu = NSMenu()
+        for preset in presetTargets {
+            let item = NSMenuItem(title: preset.label, action: #selector(selectPresetTarget(_:)), keyEquivalent: "")
+            item.representedObject = preset.host
+            item.state = monitor.host == preset.host ? .on : .off
+            item.target = self
+            submenu.addItem(item)
+        }
+        if !presetTargets.contains(where: { $0.host == monitor.host }) {
+            let current = NSMenuItem(title: monitor.host, action: nil, keyEquivalent: "")
+            current.state = .on
+            submenu.addItem(current)
+        }
+        submenu.addItem(.separator())
+        let custom = NSMenuItem(title: "Custom…", action: #selector(customTarget), keyEquivalent: "")
+        custom.target = self
+        submenu.addItem(custom)
+
+        let item = NSMenuItem(title: "Ping Target: \(monitor.host)", action: nil, keyEquivalent: "")
+        item.submenu = submenu
+        return item
+    }
+
+    @objc private func selectPresetTarget(_ sender: NSMenuItem) {
+        guard let target = sender.representedObject as? String else { return }
+        applyTarget(target)
+    }
+
+    @objc private func customTarget() {
+        let alert = NSAlert()
+        alert.messageText = "Ping Target"
+        alert.informativeText = "An IP address, hostname, or URL — Pingky pings its host once a second."
+        alert.addButton(withTitle: "Use Target")
+        alert.addButton(withTitle: "Cancel")
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 240, height: 24))
+        field.stringValue = monitor.host
+        field.placeholderString = "8.8.8.8, example.com, or https://…"
+        alert.accessoryView = field
+        alert.window.initialFirstResponder = field
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        if let normalized = PingMonitor.normalizeTarget(field.stringValue) {
+            applyTarget(normalized)
+        } else {
+            let oops = NSAlert()
+            oops.messageText = "That doesn't look pingable"
+            oops.informativeText = "Try an IP address (8.8.8.8), a hostname (example.com), or a URL (https://example.com)."
+            oops.runModal()
+        }
+    }
+
+    private func applyTarget(_ target: String) {
+        UserDefaults.standard.set(target, forKey: Self.targetKey)
+        monitor.retarget(target)
+        rebuildMenu()
     }
 
     @objc private func installUpdate() {

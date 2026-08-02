@@ -9,7 +9,7 @@ final class PingMonitor: ObservableObject {
     /// Total cells in the heatmap: 100 wide x 30 high.
     static let capacity = 3000
 
-    let host: String
+    @Published private(set) var host: String
 
     @Published private(set) var samples: [Sample] = []
 
@@ -18,6 +18,35 @@ final class PingMonitor: ObservableObject {
     init(host: String = "8.8.8.8") {
         self.host = host
         samples.reserveCapacity(Self.capacity)
+    }
+
+    /// Switch to a new target: clears the buffer and pings it right away.
+    func retarget(_ newHost: String) {
+        guard newHost != host else { return }
+        host = newHost
+        samples.removeAll()
+        if timer != nil { tick() }
+    }
+
+    /// Accepts an IP, hostname, or URL and returns the pingable host —
+    /// "https://netflix.com/browse" → "netflix.com". Nil if hopeless.
+    nonisolated static func normalizeTarget(_ input: String) -> String? {
+        var s = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        if s.contains("://") {
+            return URL(string: s)?.host
+        }
+        if s.contains("/") {
+            return URL(string: "https://" + s)?.host
+        }
+        // Strip a single trailing :port (IPv6 has multiple colons; leave it).
+        let colonCount = s.filter { $0 == ":" }.count
+        if colonCount == 1, let idx = s.firstIndex(of: ":"),
+           s[s.index(after: idx)...].allSatisfy(\.isNumber) {
+            s = String(s[..<idx])
+        }
+        guard !s.contains(" ") else { return nil }
+        return s
     }
 
     func start() {
